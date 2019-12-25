@@ -1,0 +1,3 @@
+-I./learn_tlpi/lib
+-I./apue/apue_lib
+
