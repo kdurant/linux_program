@@ -6,7 +6,7 @@ CFLAGS = -DTEST
 CFLAGS = -std=c99 -g
 CFLAGS = -lpthread
 
-SRC_FILES += 11-2.c
+SRC_FILES += 11-3.c
 
 default:
 	@$(CC) $(INC) $(CFLAGS) $(SRC_FILES) -o $(TARGET)
