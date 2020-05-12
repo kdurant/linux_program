@@ -31,6 +31,7 @@ int main(void)
     if(err != 0)
         err_exit(err, "can't creat thread 2");
 
+    // pthread_join, 等待线程的结束, 不然主线程很快执行完成，新创建的线程还没有执行就结束了
     err = pthread_join(tid1, &tret);
     if(err != 0)
         err_exit(err, "can't join with thread 1");

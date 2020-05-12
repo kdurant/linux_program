@@ -21,14 +21,14 @@ void printfoo(const char *s, const struct foo *fp)
 void *thr_fn1(void *arg)
 {
     struct foo foo = {1, 2, 3, 4};
-    printfoo("thread 1:\n", &foo);
+    printfoo("thread 1 --------------------:\n", &foo);
     pthread_exit((void *)&foo);
 }
 
 void *thr_fn2(void *arg)
 {
     printf("thread 2: ID is %lu\n", (unsigned long)pthread_self());
-    pthread_exit((void *)0);
+    pthread_exit((void *)10);
 }
 
 int main(void)
