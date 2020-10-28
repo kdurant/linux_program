@@ -22,3 +22,6 @@ GTAGS*
 main
 tmp
 !compile_flags.txt
+
+build
+.xmake
