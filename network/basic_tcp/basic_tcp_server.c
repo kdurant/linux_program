@@ -55,28 +55,18 @@ int main(int argc, char *argv[])
             printf("continue to try\n");
             continue;
         }
-        printf("One tcp client has connected");
+        printf("One tcp client has connected\n");
+        printf("IP is %s\n", inet_ntoa(client_addr.sin_addr));
+        printf("Port is %d\n", htons(client_addr.sin_port));
 
         while(1)
         {
-            int len = recv(socket_client, rx_buffer, sizeof(rx_buffer) - 1, 0);
-            if(len < 0)
-            {
-                shutdown(socket_client, 0);
-                close(socket_client);
-                break;
-            }
-            else if(len == 0)  //Connection closed
-            {
-                shutdown(socket_client, 0);
-                close(socket_client);
-                break;
-            }
-            else
-            {
-                // process the data received
-                printf("%s", rx_buffer);
-            }
+            memset(rx_buffer, 0, sizeof(rx_buffer));
+            int len = read(socket_client, rx_buffer, sizeof(rx_buffer) - 1);
+            printf("%s", rx_buffer);
+
+            sprintf(rx_buffer, "%d bytes received\n", len);
+            write(socket_client, rx_buffer, strlen(rx_buffer) + 1);
         }
     }
 
