@@ -9,20 +9,21 @@
 #include <sys/time.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <unistd.h>
 
-#define MYPORT (8100)
-#define MAXCLINE (5)
+#define MYPORT (8888)
+#define MAX_CLIENT (5)
 #define BUF_SIZE (200)
 
-int fd[MAXCLINE];
+int fd[MAX_CLIENT];
 int conn_amount;
 
 void showclient()
 {
     printf("clent amount: %d\n", conn_amount);
-    for(int i = 0; i < MAXCLINE; i++)
+    for(int i = 0; i < MAX_CLIENT; i++)
     {
-        printf("[%d]:%d", i, fd[i]);
+        printf("[%d]:%d\t\t", i, fd[i]);
     }
     printf("\n");
 }
@@ -47,6 +48,7 @@ int main(void)
     }
     printf("sock_fd = %d\n", sock_fd);
 
+    //设置套接口的选项 SO_REUSEADDR 允许在同一个端口启动服务器的多个实例
     if(setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
     {
         perror("setsockopt error\n");
@@ -63,7 +65,7 @@ int main(void)
         exit(1);
     }
 
-    if(listen(sock_fd, MAXCLINE) == -1)
+    if(listen(sock_fd, MAX_CLIENT) == -1)
     {
         perror("listen error\n");
         exit(1);
@@ -84,7 +86,8 @@ int main(void)
         tv.tv_sec  = 30;
         tv.tv_usec = 0;
 
-        for(i = 0; i < MAXCLINE; i++)
+        //将所有的连接全部加到这个这个集合中，可以监测客户端是否有数据到来
+        for(i = 0; i < MAX_CLIENT; i++)
         {
             if(fd[i] != 0)
             {
@@ -102,6 +105,73 @@ int main(void)
         {
             printf("timeout\n");
             continue;
+        }
+
+        // 有客户端连接
+        for(i = 0; i < conn_amount; i++)
+        {
+            if(FD_ISSET(fd[i], &fdsr))
+            {
+                ret = recv(fd[i], buf, sizeof(buf), 0);
+                if(ret < 0)
+                {
+                    printf("client[%d] close\n", i);
+                    close(fd[i]);
+                    FD_CLR(fd[i], &fdsr);
+                    fd[i] = 0;
+                    conn_amount--;
+                }
+                else
+                {
+                    if(ret < BUF_SIZE)
+                        memset(&buf[ret], '\0', 1);
+                    printf("client[%d] send:%s", i, buf);
+                }
+            }
+        }
+
+        if(FD_ISSET(sock_fd, &fdsr))
+        {
+            new_fd = accept(sock_fd, (struct sockaddr *)&client_addr, &sin_size);
+            if(new_fd <= 0)
+            {
+                perror("accept error\n");
+                continue;
+            }
+
+            if(conn_amount < MAX_CLIENT)
+            {
+                for(i = 0; i < MAX_CLIENT; i++)
+                {
+                    if(fd[i] == 0)
+                    {
+                        fd[i] = new_fd;
+                        break;
+                    }
+                }
+                conn_amount++;
+                printf("new connection cliend[%d]%s:%d\n", conn_amount, inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
+                if(new_fd > maxsock)
+                {
+                    maxsock = new_fd;
+                }
+            }
+            else
+            {
+                printf("max connections arrive, exit\n");
+                send(new_fd, "bye", 4, 0);
+                close(new_fd);
+                continue;
+            }
+        }
+        showclient();
+    }
+
+    for(i = 0; i < MAX_CLIENT; i++)
+    {
+        if(fd[i] != 0)
+        {
+            close(fd[i]);
         }
     }
 
