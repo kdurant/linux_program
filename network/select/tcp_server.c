@@ -80,6 +80,7 @@ int main(void)
 
     while(1)
     {
+        //select()的参数在每次select()函数的返回会被内核修改，所以这里需要重新设置
         FD_ZERO(&fdsr);
         FD_SET(sock_fd, &fdsr);
         tv.tv_sec  = 30;
@@ -94,7 +95,11 @@ int main(void)
             }
         }
 
-        // 如果文件没有变化
+        // 套接字可读条件
+        // 1. socket内核接收缓冲区中字节数>=其低水位标记SO_RCVLOWAT时，此时程序可以无阻塞地读该socket，返回读取到的字节数(>0)
+        // 2. socket通信的对端关闭连接，此时对该socket的读操作将返回0表示对端关闭
+        // 3. 监听socket上有新的连接请求
+        // 4. 套接字上有错误待处理
         ret = select(maxsock + 1, &fdsr, NULL, NULL, &tv);
         if(ret < 0)
         {
@@ -153,7 +158,7 @@ int main(void)
                 printf("new connection cliend[%d]%s:%d\n", conn_amount, inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
                 if(new_fd > maxsock)
                 {
-                    maxsock = new_fd;
+                    maxsock = new_fd;  // 有新的的tcp连接进来后，需要更新select的nfds
                 }
             }
             else
