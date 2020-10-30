@@ -30,16 +30,12 @@ void showclient()
 
 int main(void)
 {
-    int                sock_fd, new_fd;
-    struct sockaddr_in server_addr;
-    struct sockaddr_in client_addr;
-    socklen_t          sin_size;
-
     int  yes = 1;
     char buf[BUF_SIZE];
     int  ret;
     int  i;
 
+    int sock_fd, new_fd;
     sock_fd = socket(AF_INET, SOCK_STREAM, 0);
     if(sock_fd < 0)
     {
@@ -55,6 +51,9 @@ int main(void)
         exit(1);
     }
 
+    struct sockaddr_in server_addr;
+    struct sockaddr_in client_addr;
+    socklen_t          sin_size;
     server_addr.sin_family      = AF_INET;
     server_addr.sin_port        = htons(MYPORT);
     server_addr.sin_addr.s_addr = INADDR_ANY;
@@ -95,6 +94,7 @@ int main(void)
             }
         }
 
+        // 如果文件没有变化
         ret = select(maxsock + 1, &fdsr, NULL, NULL, &tv);
         if(ret < 0)
         {
