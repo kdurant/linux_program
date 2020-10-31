@@ -143,6 +143,9 @@ int main(void)
                 perror("accept error\n");
                 continue;
             }
+            printf("One tcp client has connected\n");
+            printf("IP is %s\n", inet_ntoa(client_addr.sin_addr));
+            printf("Port is %d\n", htons(client_addr.sin_port));
 
             if(conn_amount < MAX_CLIENT)
             {

@@ -1,4 +1,3 @@
-#include <cstddef>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -90,6 +89,10 @@ int main(void)
                     perror("accept failed.\n");
                     exit(1);
                 }
+                printf("One tcp client has connected\n");
+                printf("IP is %s\n", inet_ntoa(client_addr.sin_addr));
+                printf("Port is %d\n", htons(client_addr.sin_port));
+
                 event.events  = EPOLLIN;
                 event.data.fd = client_fd;
 
