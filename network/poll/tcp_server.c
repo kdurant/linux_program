@@ -46,21 +46,21 @@ int main(void)
         if((client[0].revents && POLLIN) == POLLIN)
         {
             struct sockaddr_in client_addr;
-            int                addr_len = sizeof(client_addr);
-            int                connfd   = 0;
+            int                addr_len      = sizeof(client_addr);
+            int                new_client_fd = 0;
 
             // 从tcp完成连接中提取客户端
-            connfd = accept(sockfd, (struct sockaddr *)&client_addr, &addr_len);
+            new_client_fd = accept(sockfd, (struct sockaddr *)&client_addr, &addr_len);
             printf("One tcp client has connected\n");
             printf("IP is %s\n", inet_ntoa(client_addr.sin_addr));
             printf("Port is %d\n", htons(client_addr.sin_port));
 
-            // 将提取到的connfd放入到poll结构体数组中，以便poll函数检测
+            // 将提取到的new_client_fd放入到poll结构体数组中，以便poll函数检测
             for(i = 0; i < OPEN_MAX; i++)
             {
                 if(client[i].fd < 0)
                 {
-                    client[i].fd     = connfd;
+                    client[i].fd     = new_client_fd;
                     client[i].events = POLLIN;
                     break;
                 }

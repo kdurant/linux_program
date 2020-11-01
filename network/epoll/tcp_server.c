@@ -23,7 +23,7 @@ int main(void)
     int           ret;
     unsigned char buf[BUF_SIZE];
 
-    int server_fd, client_fd;
+    int server_fd, new_client_fd;
     server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if(server_fd < 0)
     {
@@ -83,8 +83,8 @@ int main(void)
         {
             if(event_array[i].data.fd == server_fd)
             {
-                client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &addr_len);
-                if(client_fd == -1)
+                new_client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &addr_len);
+                if(new_client_fd == -1)
                 {
                     perror("accept failed.\n");
                     exit(1);
@@ -94,9 +94,9 @@ int main(void)
                 printf("Port is %d\n", htons(client_addr.sin_port));
 
                 event.events  = EPOLLIN;
-                event.data.fd = client_fd;
+                event.data.fd = new_client_fd;
 
-                if(epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &event) == -1)
+                if(epoll_ctl(epoll_fd, EPOLL_CTL_ADD, new_client_fd, &event) == -1)
                 {
                     perror("epoll_ctl failed.\n");
                     exit(1);
