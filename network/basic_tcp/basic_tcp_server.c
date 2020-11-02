@@ -1,3 +1,4 @@
+#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,12 +13,12 @@
 
 int main(int argc, char *argv[])
 {
-    int           err;
-    unsigned char rx_buffer[2048];
+    int  err;
+    char rx_buffer[2048];
 
-    int socket_server, socket_client;
-    socket_server = socket(AF_INET, SOCK_STREAM, 0);
-    if(socket_server < 0)
+    int socket_fd, connected_fd;
+    socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if(socket_fd < 0)
     {
         printf("socket error\n");
         return -1;
@@ -29,14 +30,14 @@ int main(int argc, char *argv[])
     server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     server_addr.sin_port        = htons(PORT);
 
-    if(bind(socket_server, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
+    if(bind(socket_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
     {
         printf("errno = %d\n", errno);
         printf("bind error\n");
         return -1;
     }
 
-    if(listen(socket_server, BACKLOG) < 0)
+    if(listen(socket_fd, BACKLOG) < 0)
     {
         printf("listen error\n");
         return -1;
@@ -45,24 +46,22 @@ int main(int argc, char *argv[])
     socklen_t addrlen = sizeof(struct sockaddr);
     while(1)
     {
-        socket_client = accept(socket_server, (struct sockaddr *)&client_addr, &addrlen);
-        if(socket_client < 0)
+        connected_fd = accept(socket_fd, (struct sockaddr *)&client_addr, &addrlen);
+        if(connected_fd < 0)
         {
             printf("continue to try\n");
             continue;
         }
-        printf("One tcp client has connected\n");
-        printf("IP is %s\n", inet_ntoa(client_addr.sin_addr));
-        printf("Port is %d\n", htons(client_addr.sin_port));
+        printf("connection from %s, port %d\n", inet_ntop(AF_INET, &client_addr.sin_addr, rx_buffer, sizeof(rx_buffer)), ntohs(client_addr.sin_port));
 
         while(1)
         {
             memset(rx_buffer, 0, sizeof(rx_buffer));
-            int len = read(socket_client, rx_buffer, sizeof(rx_buffer) - 1);
+            int len = read(connected_fd, rx_buffer, sizeof(rx_buffer) - 1);
             printf("%s", rx_buffer);
 
             sprintf(rx_buffer, "%d bytes received\n", len);
-            write(socket_client, rx_buffer, strlen(rx_buffer) + 1);
+            write(connected_fd, rx_buffer, strlen(rx_buffer) + 1);
         }
     }
 

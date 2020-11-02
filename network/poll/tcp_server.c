@@ -18,16 +18,18 @@
 
 int main(void)
 {
-    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    char buf[128] = "";
+
+    int socket_fd = socket(AF_INET, SOCK_STREAM, 0);
 
     struct sockaddr_in server_addr;
     bzero(&server_addr, sizeof(server_addr));
     server_addr.sin_family      = AF_INET;
     server_addr.sin_port        = htons(PORT);
     server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    bind(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr));
+    bind(socket_fd, (struct sockaddr *)&server_addr, sizeof(server_addr));
 
-    listen(sockfd, 10);
+    listen(socket_fd, 10);
 
     // 准备poll相关参数
     struct pollfd client[OPEN_MAX];
@@ -35,14 +37,14 @@ int main(void)
     int           cur_poll_num = 0;  // pollfd数组中有几个有效的fd
     for(; i < OPEN_MAX; i++)
         client[i].fd = -1;
-    client[0].fd     = sockfd;  // 需要检测的描述符
-    client[0].events = POLLIN;  // 普通或优先级带数据可读
+    client[0].fd     = socket_fd;  // 需要检测的描述符
+    client[0].events = POLLIN;     // 普通或优先级带数据可读
 
     while(1)
     {
         int ret = poll(client, cur_poll_num + 1, -1);
 
-        // 检测sockfd是否存在连接
+        // 检测socket_fd是否存在连接
         if((client[0].revents && POLLIN) == POLLIN)
         {
             struct sockaddr_in client_addr;
@@ -50,10 +52,9 @@ int main(void)
             int                new_client_fd = 0;
 
             // 从tcp完成连接中提取客户端
-            new_client_fd = accept(sockfd, (struct sockaddr *)&client_addr, &addr_len);
-            printf("One tcp client has connected\n");
-            printf("IP is %s\n", inet_ntoa(client_addr.sin_addr));
-            printf("Port is %d\n", htons(client_addr.sin_port));
+            new_client_fd = accept(socket_fd, (struct sockaddr *)&client_addr, &addr_len);
+
+            printf("connection from %s, port %d\n", inet_ntop(AF_INET, &client_addr.sin_addr, buf, sizeof(buf)), ntohs(client_addr.sin_port));
 
             // 将提取到的new_client_fd放入到poll结构体数组中，以便poll函数检测
             for(i = 0; i < OPEN_MAX; i++)
@@ -80,8 +81,7 @@ int main(void)
 
             if(client[i].revents & (POLLIN | POLLERR))
             {
-                int  len      = 0;
-                char buf[128] = "";
+                int len = 0;
 
                 // 接收客户端数据
                 if((len = recv(client[i].fd, buf, sizeof(buf), 0)) < 0)

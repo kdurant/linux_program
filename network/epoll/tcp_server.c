@@ -20,8 +20,8 @@
 
 int main(void)
 {
-    int           ret;
-    unsigned char buf[BUF_SIZE];
+    int  ret;
+    char buf[BUF_SIZE];
 
     int server_fd, new_client_fd;
     server_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -89,9 +89,8 @@ int main(void)
                     perror("accept failed.\n");
                     exit(1);
                 }
-                printf("One tcp client has connected\n");
-                printf("IP is %s\n", inet_ntoa(client_addr.sin_addr));
-                printf("Port is %d\n", htons(client_addr.sin_port));
+
+                printf("connection from %s, port %d\n", inet_ntop(AF_INET, &client_addr.sin_addr, buf, sizeof(buf)), ntohs(client_addr.sin_port));
 
                 event.events  = EPOLLIN;
                 event.data.fd = new_client_fd;

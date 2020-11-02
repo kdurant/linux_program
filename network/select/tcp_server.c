@@ -35,17 +35,17 @@ int main(void)
     int  ret;
     int  i;
 
-    int sock_fd, new_fd;
-    sock_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if(sock_fd < 0)
+    int socket_fd, new_fd;
+    socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if(socket_fd < 0)
     {
         perror("setsockopt");
         exit(1);
     }
-    printf("sock_fd = %d\n", sock_fd);
+    printf("socket_fd = %d\n", socket_fd);
 
     //设置套接口的选项 SO_REUSEADDR 允许在同一个端口启动服务器的多个实例
-    if(setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
+    if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
     {
         perror("setsockopt error\n");
         exit(1);
@@ -58,13 +58,13 @@ int main(void)
     server_addr.sin_port        = htons(MYPORT);
     server_addr.sin_addr.s_addr = INADDR_ANY;
     memset(&server_addr.sin_addr, '\0', sizeof(server_addr.sin_addr));
-    if(bind(sock_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1)
+    if(bind(socket_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1)
     {
         perror("bind error\n");
         exit(1);
     }
 
-    if(listen(sock_fd, MAX_CLIENT) == -1)
+    if(listen(socket_fd, MAX_CLIENT) == -1)
     {
         perror("listen error\n");
         exit(1);
@@ -76,13 +76,13 @@ int main(void)
     struct timeval tv;
     conn_amount = 0;
     sin_size    = sizeof(client_addr);
-    maxsock     = sock_fd;
+    maxsock     = socket_fd;
 
     while(1)
     {
         //select()的参数在每次select()函数的返回会被内核修改，所以这里需要重新设置
         FD_ZERO(&fdsr);
-        FD_SET(sock_fd, &fdsr);
+        FD_SET(socket_fd, &fdsr);
         tv.tv_sec  = 30;
         tv.tv_usec = 0;
 
@@ -135,17 +135,15 @@ int main(void)
             }
         }
 
-        if(FD_ISSET(sock_fd, &fdsr))
+        if(FD_ISSET(socket_fd, &fdsr))
         {
-            new_fd = accept(sock_fd, (struct sockaddr *)&client_addr, &sin_size);
+            new_fd = accept(socket_fd, (struct sockaddr *)&client_addr, &sin_size);
             if(new_fd <= 0)
             {
                 perror("accept error\n");
                 continue;
             }
-            printf("One tcp client has connected\n");
-            printf("IP is %s\n", inet_ntoa(client_addr.sin_addr));
-            printf("Port is %d\n", htons(client_addr.sin_port));
+            printf("connection from %s, port %d\n", inet_ntop(AF_INET, &client_addr.sin_addr, buf, sizeof(buf)), ntohs(client_addr.sin_port));
 
             if(conn_amount < MAX_CLIENT)
             {
