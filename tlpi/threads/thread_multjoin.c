@@ -15,7 +15,7 @@ enum tstate
 {
     TS_ALIVE,
     TS_TERMINATED,
-    TJ_JOINED
+    TS_JOINED
 };
 
 static struct
@@ -46,6 +46,7 @@ static void *threadFunc(void *arg)
     s = pthread_cond_signal(&threadDied);
     if(s != 0)
         errExitEN(s, "pthread_mutex_lock");
+    printf("Thread %d terminated\n", idx);
 
     return NULL;
 }
@@ -54,7 +55,7 @@ int main(int argc, char *argv[])
 {
     int s, idx;
 
-    if(argc < 2 || strcmp(argc[1], "--help") == 0)
+    if(argc < 2 || strcmp(argv[1], "--help") == 0)
         usageErr("%s nsecs...\n", argv[0]);
 
     thread = calloc(argc - 1, sizeof(*thread));
@@ -63,7 +64,7 @@ int main(int argc, char *argv[])
 
     for(idx = 0; idx < argc - 1; idx++)
     {
-        thread[idx].sleepTime = getInt(argv[idx] + 1, GN_NONNEG, NULL);
+        thread[idx].sleepTime = getInt(argv[idx + 1], GN_NONNEG, NULL);
         thread[idx].state     = TS_ALIVE;
         s                     = pthread_create(&thread[idx].tid, NULL, threadFunc, &idx);
         if(s != 0)

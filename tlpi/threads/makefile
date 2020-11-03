@@ -9,7 +9,7 @@ CFLAGS += -pthread
 
 SRC_FILES = $(INC_DIRS)/get_num.c $(INC_DIRS)/ugid_functions.c $(INC_DIRS)/error_functions.c $(INC_DIRS)/file_perms.c
 
-SRC_FILES += thread_incr_mutex.c
+SRC_FILES += thread_multjoin.c
 
 default:
 	@$(CC) $(INC) $(CFLAGS) $(SRC_FILES) -o $(TARGET)
