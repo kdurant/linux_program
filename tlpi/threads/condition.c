@@ -3,14 +3,7 @@
 #include <unistd.h>
 #include <pthread.h>
 
-typedef struct msg
-{
-    struct msg *next;
-    int         num;
-} msg_t;
-
-msg_t *head = NULL;
-msg_t *mp   = NULL;
+int food = 0;
 
 /* 静态初始化 一个条件变量 和 一个互斥量*/
 pthread_cond_t  has_product = PTHREAD_COND_INITIALIZER;
@@ -20,17 +13,13 @@ void *th_producer(void *arg)
 {
     while(1)
     {
-        mp      = malloc(sizeof(msg_t));
-        mp->num = rand() % 1000;  //模拟生产一个产品
-        printf("--- produce: %d --------\n", mp->num);
-
         pthread_mutex_lock(&mutex);
-        mp->next = head;
-        head     = mp;
+        printf("--- produce: --------\n");
+        food++;
         pthread_mutex_unlock(&mutex);
 
         pthread_cond_signal(&has_product);  //唤醒线程去消费产品
-        sleep(rand() % 5);
+        sleep(1);
     }
     return NULL;
 }
@@ -40,18 +29,16 @@ void *th_consumer(void *arg)
     while(1)
     {
         pthread_mutex_lock(&mutex);
-        while(head == NULL)
-        {  //如果链表里没有产品，就没有抢锁的必要，一直阻塞等待
+        // 条件变量这个变量其实本身不包含条件信息，
+        // 条件的判断不在pthread_cond_wait函数功能中， 而需要外面进行条件判断。
+        // 这个条件通常是多个线程或进程的共享变量，
+        while(food == 0)
+        {
             pthread_cond_wait(&has_product, &mutex);
         }
-        mp   = head;
-        head = mp->next;  //模拟消费掉一个产品
+        food--;
+        printf("========= consume: ======\n");
         pthread_mutex_unlock(&mutex);
-
-        printf("========= consume: %d ======\n", mp->num);
-        free(mp);
-        mp = NULL;
-        sleep(rand() % 5);
     }
     return NULL;
 }
