@@ -12,6 +12,7 @@
 *.zip
 *.xml
 tmp
+test*
 GPATH
 GRTAGS
 GTAGS*
