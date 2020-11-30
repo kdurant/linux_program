@@ -1,40 +1,30 @@
-# 语法格式
+# [语法格式](https://blog.csdn.net/zhaofuguang/article/details/18213507)
 - Intel
 - AT&T
+为了区分格式，我们将Intel格式的汇编代码文件后缀名写为.asm，而AT&T的写为.s
  
 # 编译器
 
 1. nasm 
+    使用的是 Intel 汇编语法
+    ```bash 
+    nasm -f elf64 source.asm
+    ld source.o -o a.out
+    ```
 
 2. masm
+
 3. gas 
+    使用标准的 AT&T 汇编语法, 默认使用`_start`作为入口。
+    但可用在ld时重新指定入口函数
+    ```bash 
+    as source.s -o objfile.o
+    ld objfile.o -o execode
+
+    ld objfile.o -o execode --entry=main
+    ```
 4. gcc
+    使用`main`作为入口.
+    扩展名最好是大写的`S`。这是因为，大写的 S 可以使 gcc 自动识别汇编程序中的 C 预处理命令，像#include、#define、#ifdef、 #endif 等，也就是说，使用 gcc 进行编译，你可以在 汇编程序中使用 C 的预处理命令。
 
-
-# hello world 
-## nasm 
-; ----------------------------------------------------------------------------------------
-; 仅使用系统调用来输出 "Hello, World" 到控制台。 这个程序仅在 64 位的 Linux 下运行。
-; 如何编译执行:
-;
-;     nasm -felf64 hello.asm && ld hello.o && ./a.out
-; ----------------------------------------------------------------------------------------
-
-        global  _start
-
-        section .text
-_start:
-        ; write(1, message, 13)
-        mov     rax, 1                  ; 1 号系统调用是写操作 
-        mov     rdi, 1                  ; 1 号文件系统调用是标准输出 
-        mov     rsi, message            ; 输出字符串的地址 
-        mov     rdx, 13                 ; 字符串的长度 
-        syscall                         ; 调用系统执行写操作 
-
-        ; exit(0)
-        mov     eax, 60                 ; 60 号系统调用是退出 
-        xor     rdi, rdi                ; 0 号系统调用作为退出 
-        syscall                         ; 调用系统执行退出 
-message:
-        db      "Hello, World", 10      ; 注意到最后的换行 
-```
+# 函数调用约定
