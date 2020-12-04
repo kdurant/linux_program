@@ -8,7 +8,7 @@
 1. nasm 
     使用的是 Intel 汇编语法
     ```bash 
-    nasm -f elf64 source.asm
+    nasm -f elf64 -g -F dwarf source.asm
     ld source.o -o a.out
     ```
 
