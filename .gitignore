@@ -5,6 +5,7 @@
 *.docx
 *.rar
 *.txt
+!CMakeLists.txt
 *.html
 *.jpg
 *.chm
