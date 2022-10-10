@@ -18,6 +18,7 @@ test*
 GPATH
 GRTAGS
 GTAGS*
+.cache
 
 *.o
 *.out
