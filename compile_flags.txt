@@ -1,4 +1,0 @@
--I./tlpi/lib
--I./apue/apue_lib
-
-
